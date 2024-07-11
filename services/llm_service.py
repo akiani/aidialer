@@ -20,6 +20,7 @@ class AbstractLLMService(EventEmitter, ABC):
         super().__init__()
         self.system_message = context.system_message
         self.initial_message = context.initial_message
+        self.context = context
         self.user_context = [
             {"role": "user", "content": "Hello"},
             {"role": "assistant", "content": self.initial_message}
@@ -34,11 +35,11 @@ class AbstractLLMService(EventEmitter, ABC):
         context.user_context = self.user_context
 
     def set_call_context(self, context: CallContext):
+        self.context = context
         self.user_context = [
             {"role": "user", "content": "Hello"},
             {"role": "assistant", "content": context.initial_message}
         ]
-
         context.user_context = self.user_context
         self.system_message = context.system_message
         self.initial_message = context.initial_message
@@ -157,7 +158,7 @@ class OpenAIService(AbstractLLMService):
                         "partialResponse": say
                     }, interaction_count)
 
-                    function_response = await function_to_call(function_args)
+                    function_response = await function_to_call(self.context, function_args)
                                         
                     logger.info(f"Function {function_name} called with args: {function_args}")
 

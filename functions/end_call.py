@@ -2,33 +2,24 @@ import os
 from twilio.rest import Client
 import asyncio
 
-async def end_call(args):
+async def end_call(context, args):
     # Retrieve the Twilio credentials from environment variables
     account_sid = os.environ['TWILIO_ACCOUNT_SID']
     auth_token = os.environ['TWILIO_AUTH_TOKEN']
     client = Client(account_sid, auth_token)
+    call_sid = context.call_sid
 
-    # Assuming the CallSid is stored in an environment variable
-    call_sid = os.environ.get('CURRENT_CALL_SID')
+    # Fetch the call
+    call = client.calls(call_sid).fetch()
 
-    if not call_sid:
-        return "Error: No active call found"
+    # Check if the call is already completed
+    if call.status in ['completed', 'failed', 'busy', 'no-answer', 'canceled']:
+        return f"Call already ended with status: {call.status}"
 
-    try:
-        # Fetch the call
-        call = client.calls(call_sid).fetch()
+    # Wait for 5 seconds before ending the call to ensure the goodbye goes through
+    await asyncio.sleep(5)
 
-        # Check if the call is already completed
-        if call.status in ['completed', 'failed', 'busy', 'no-answer', 'canceled']:
-            return f"Call already ended with status: {call.status}"
+    # End the call
+    call = client.calls(call_sid).update(status='completed')
 
-        # Wait for 5 seconds before ending the call to ensure the goodbye goes through
-        await asyncio.sleep(5)
-
-        # End the call
-        call = client.calls(call_sid).update(status='completed')
-
-        return f"Call ended successfully. Final status: {call.status}"
-
-    except Exception as e:
-        return f"Error ending call: {str(e)}"
+    return f"Call ended successfully. Final status: {call.status}"

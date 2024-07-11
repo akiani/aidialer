@@ -140,6 +140,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Inbound call
                     call_context.system_message = os.environ.get("SYSTEM_MESSAGE")
                     call_context.initial_message = os.environ.get("INITIAL_MESSAGE")
+                    call_context.call_sid = call_sid
                     call_contexts[call_sid] = call_context
                 else:
                     # Call from UI, reuse the existing context

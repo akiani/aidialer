@@ -7,7 +7,7 @@ class CallContext:
         self.stream_sid: Optional[str] = None
         self.call_sid: Optional[str] = None
         self.call_ended: bool = False
-        self.user_context = []
+        self.user_context: List = []
         self.system_message: str = ""
         self.initial_message: str = ""
         self.start_time: Optional[str] = None
