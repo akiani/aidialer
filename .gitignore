@@ -1,0 +1,30 @@
+# Environment and local settings
+.env
+.venv/
+*.pyc
+__pycache__/
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+
+# Streamlit
+.streamlit/
+
+# Aider
+.aider*
+
+# Pytest
+.pytest_cache/
+
+# Build files
+*.egg-info/
+dist/
+build/

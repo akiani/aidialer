@@ -1,0 +1,32 @@
+# Web Framework
+Flask
+fastapi
+
+# Environment and Configuration
+python-dotenv
+
+# Networking
+requests
+websockets
+
+# API Integrations
+twilio
+openai
+deepgram-sdk
+
+# Event Handling
+event-emitter
+flask-sock
+
+# Logging
+colorlog
+loguru
+
+# Testing
+pytest
+pytest-asyncio
+
+# UI
+streamlit
+
+anthropic
