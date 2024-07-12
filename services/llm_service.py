@@ -158,6 +158,8 @@ class OpenAIService(AbstractLLMService):
                         "partialResponse": say
                     }, interaction_count)
 
+                    self.user_context.append({"role": "assistant", "content": say})
+                    
                     function_response = await function_to_call(self.context, function_args)
                                         
                     logger.info(f"Function {function_name} called with args: {function_args}")

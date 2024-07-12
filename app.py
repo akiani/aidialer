@@ -42,7 +42,8 @@ async def get_call_recording(call_sid: str):
     """Get the recording URL for a specific call."""
     recording = get_twilio_client().calls(call_sid).recordings.list()
     if recording:
-        return {"recording_url": recording[0].uri}
+        print({"recording_url": f"https://api.twilio.com/{recording[0].uri}"})
+        return {"recording_url": f"https://api.twilio.com/{recording[0].uri}"}
     if not recording:
         return {"error": "Recording not found"}
     
@@ -205,10 +206,12 @@ async def start_call(request: Dict[str, str]):
         call_sid = call.sid
         call_context = CallContext()
         call_contexts[call_sid] = call_context
+        
 
         # Set custom system and initial messages for this call if provided
         call_context.system_message = system_message or os.getenv("SYSTEM_MESSAGE")
         call_context.initial_message = initial_message or os.getenv("Config.INITIAL_MESSAGE")
+        call_context.call_sid = call_sid
 
         return {"call_sid": call_sid}
     except Exception as e:
