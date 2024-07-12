@@ -88,8 +88,8 @@ YOUR_NUMBER=your_number
 TRANSFER_NUMBER=your_transfer_number
 
 # AI Configuration
-SYSTEM_MESSAGE="You are a representative called Sarah from El Camino Hospital. Your goal is to obtain a prior authorization for a patient called John Doe for a knee surgery. Be brief in your correspondence."
-INITIAL_MESSAGE="Hello, my name is Sarah, and I'm calling from El Camino Hospital. I need to discuss a prior authorization for a patient. Could you please direct me to the appropriate representative?"
+SYSTEM_MESSAGE=system_message
+INITIAL_MESSAGE=initial_message
 
 # Should calls be recorded? (this has legal implications, so be careful)
 RECORD_CALLS=false
@@ -102,14 +102,14 @@ Assuming that you have created a [Twilio phone number](https://www.twilio.com/do
 twilio phone-numbers:update YOURNUMBER --voice-url=https://NGROKURL/incoming
 ```
 
-### 4. Run the FastAPI server
+### 5. Run the FastAPI server
 ```
 python app.py
 ```
 
-### 5. Run the Frontend server
+### 6. Run the Frontend server
 ```
-streamlit ui/streamlit_app.py
+streamlit run ui/streamlit_app.py
 ```
 
 ## Contribution
