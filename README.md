@@ -3,6 +3,12 @@
 ## Summary
 A full stack app for interruptible, low-latency and near-human quality AI phone calls built from stitching LLMs, speech understanding tools, text-to-speech models, and Twilio’s phone API
 
+![UI Screenshot](images/screenshot.png)
+
+<audio controls>
+  <source src="examples/sample.m4a" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
 
 ## Features
 The following components have been implemented and wrangled together in *streaming fashion* to achieve the tasks of *low-latency* and *interruptible* AI calls:

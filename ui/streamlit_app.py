@@ -2,11 +2,22 @@ import os
 import time
 import requests
 import streamlit as st
+import dotenv
+
+dotenv.load_dotenv(verbose=True)
 
 st.set_page_config(page_title="AI Dialer", page_icon="📞", layout="wide")
 
 def display_call_interface():
     return st.text_input("Phone Number (format: +1XXXXXXXXXX)", value=os.getenv("YOUR_NUMBER") or "")
+
+def fetch_all_transcripts():
+    try:
+        response = requests.get(f"https://{os.getenv('SERVER')}/all_transcripts")
+        return response.json().get('transcripts', [])
+    except requests.RequestException as e:
+        st.error(f"Error fetching call list: {str(e)}")
+        return []
 
 if 'call_active' not in st.session_state:
     st.session_state.call_active = False
@@ -14,7 +25,7 @@ if 'call_active' not in st.session_state:
     st.session_state.transcript = []
     st.session_state.system_message = os.getenv("SYSTEM_MESSAGE")
     st.session_state.initial_message = os.getenv("INITIAL_MESSAGE")
-    st.session_state.all_transcripts = []
+    st.session_state.all_transcripts = fetch_all_transcripts()
     st.session_state.recording_info = None
     st.session_state.call_selector = "Current Call"
 
@@ -105,7 +116,14 @@ def on_call_selector_change():
     else:
         st.session_state.recording_info = None
 
-st.selectbox("Select Call", options=["Current Call"] + [f"Call {t['call_sid']}" for t in st.session_state.all_transcripts], key="call_selector", on_change=on_call_selector_change)
+st.selectbox(
+    "Select a call",
+    options=["Current Call"] + [f"Call {t['call_sid']}" for t in st.session_state.all_transcripts],
+    key="call_selector",
+    index=0,
+    disabled=st.session_state.call_active,
+    on_change=on_call_selector_change
+)
 
 if st.button("Refresh Call List"):
     try:
@@ -114,32 +132,35 @@ if st.button("Refresh Call List"):
         on_call_selector_change()  # Refresh the recording URL after updating the call list
     except requests.RequestException as e:
         st.error(f"Error fetching call list: {str(e)}")
+    # Keep the existing system and initial messages (don't reset to env values)
 
 st.divider()
 
-# Call Recording display
-if st.session_state.call_selector != "Current Call" and st.session_state.recording_info:
-    st.subheader("Call Recording")
-    audio_url = st.session_state.recording_info['url']
-    st.audio(audio_url, format="audio/mp3", start_time=0)
-    st.divider()
+# Call Recording and Transcript display
+with st.spinner("Loading recording and transcript..."):
+    # Call Recording display
+    if st.session_state.call_selector != "Current Call" and st.session_state.recording_info:
+        st.subheader("Call Recording")
+        audio_url = st.session_state.recording_info['url']
+        st.audio(audio_url, format="audio/mp3", start_time=0)
+        st.divider()
 
-# Transcript display
-if st.session_state.call_active and st.session_state.call_sid:
-    st.subheader(f"Transcript for Current Call {st.session_state.call_sid}")
-    for entry in st.session_state.transcript:
-        if entry['role'] == 'user':
-            st.chat_message("user").write(entry['content'])
-        elif entry['role'] == 'assistant':
-            st.chat_message("assistant").write(entry['content'])
-elif st.session_state.call_selector != "Current Call":
-    if transcript := next((t for t in st.session_state.all_transcripts if f"Call {t['call_sid']}" == st.session_state.call_selector), None):
-        st.subheader(f"Transcript for {st.session_state.call_selector}")
-        for entry in transcript['transcript']:
+    # Transcript display
+    if st.session_state.call_active and st.session_state.call_sid:
+        st.subheader(f"Transcript for Current Call {st.session_state.call_sid}")
+        for entry in st.session_state.transcript:
             if entry['role'] == 'user':
                 st.chat_message("user").write(entry['content'])
             elif entry['role'] == 'assistant':
                 st.chat_message("assistant").write(entry['content'])
+    elif st.session_state.call_selector != "Current Call":
+        if transcript := next((t for t in st.session_state.all_transcripts if f"Call {t['call_sid']}" == st.session_state.call_selector), None):
+            st.subheader(f"Transcript for {st.session_state.call_selector}")
+            for entry in transcript['transcript']:
+                if entry['role'] == 'user':
+                    st.chat_message("user").write(entry['content'])
+                elif entry['role'] == 'assistant':
+                    st.chat_message("assistant").write(entry['content'])
 
 if st.session_state.call_active:
     def update_call_info():
