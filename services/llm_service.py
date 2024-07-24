@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 import anthropic
+from groq import Groq
 from openai import AsyncOpenAI
 
 from functions.function_manifest import tools
@@ -120,7 +121,7 @@ class OpenAIService(AbstractLLMService):
             messages = [{"role": "system", "content": self.system_message}] + self.user_context
         
             stream = await self.openai.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=messages,
                 tools=tools,
                 stream=True,
@@ -246,6 +247,46 @@ class AnthropicService(AbstractLLMService):
         except Exception as e:
             logger.error(f"Error in AnthropicService completion: {str(e)}")
 
+class GroqService(AbstractLLMService):
+    def __init__(self, context: CallContext):
+        super().__init__(context)
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+    async def completion(self, text: str, interaction_count: int, role: str = 'user', name: str = 'user'):
+        try:
+            self.user_context.append({"role": role, "content": text, "name": name})
+            messages = [{"role": "system", "content": self.system_message}] + self.user_context
+
+            completion = self.client.chat.completions.create(
+                model="llama-3.1-8b-instant",  # You may want to make this configurable
+                messages=messages,
+                temperature=1,
+                max_tokens=1024,
+                top_p=1,
+                stream=True,
+                stop=None,
+            )
+
+            complete_response = ""
+            for chunk in completion:
+                content = chunk.choices[0].delta.content or ""
+                complete_response += content
+                await self.emit_complete_sentences(content, interaction_count)
+
+            # Emit any remaining content in the buffer
+            if self.sentence_buffer.strip():
+                await self.emit('llmreply', {
+                    "partialResponseIndex": self.partial_response_index,
+                    "partialResponse": self.sentence_buffer.strip()
+                }, interaction_count)
+                self.sentence_buffer = ""
+
+            self.user_context.append({"role": "assistant", "content": complete_response})
+
+        except Exception as e:
+            logger.error(f"Error in GroqService completion: {str(e)}")
+
+# Update the LLMFactory to include the new GroqService
 class LLMFactory:
     @staticmethod
     def get_llm_service(service_name: str, context: CallContext) -> AbstractLLMService:
@@ -253,5 +294,7 @@ class LLMFactory:
             return OpenAIService(context)
         elif service_name.lower() == "anthropic":
             return AnthropicService(context)
+        elif service_name.lower() == "groq":
+            return GroqService(context)
         else:
             raise ValueError(f"Unsupported LLM service: {service_name}")
