@@ -2,6 +2,9 @@
 
 👉 A [blog post](https://amirkiani.xyz/posts/ai-dialer/) explaining the work behind this project.
 
+## Important Update
+As of 2025, major changes in Deepgram, ElevenLabs and OpenAI APIs has unfortunately has rendered this codebase obsolete. The repo is kept merely as a code reference for handling real-time AI phone calls.
+
 ## Summary
 A full stack app for interruptible, low-latency and near-human quality AI phone calls built from stitching LLMs, speech understanding tools, text-to-speech models, and Twilio’s phone API
 
